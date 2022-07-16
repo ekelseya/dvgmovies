@@ -1,9 +1,10 @@
 <template>
   <div>
-    <h2>Reviews in #{{ $route.params.tag }}</h2>
+    <h1>Movies by tag</h1>
+    <h2 v-if="loadingReviews || loading">Loading reviews in #{{ $route.params.tag }}</h2>
+    <h2 v-if="result">Reviews in #{{ $route.params.tag }} </h2>
     <p v-if="error">Something went wrong... </p>
-    <p v-if="loading">Loading...</p>
-    <ReviewList v-if="result" :reviews="result.reviewsByTag" />
+    <ReviewList v-if="!loadingReviews && result" :reviews="result.reviewsByTag" />
   </div>
 </template>
 
@@ -38,16 +39,26 @@ export default {
   },
   data () {
     return {
-      reviews: null,
+      reviews: [],
+      loadingReviews: false,
     }
+  },
+  apollo: {
+    reviews: {
+      query: REVIEWS_BY_TAG_QUERY,
+        variables() {
+          return { tag: this.$route.params.tag };
+        }, 
+    },
   },
   created() {
     this.$watch(
       () => this.$route.params,
       (toParams, previousParams) => {
         if (toParams !== previousParams) {
+          this.loadingReviews = true;
           //This is incredibly hacky and should be fixed.
-          location.reload();
+          setTimeout(location.reload(), 2000);
         }
       }
     )
